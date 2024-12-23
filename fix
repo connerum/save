@@ -1,0 +1,10 @@
+How to Fix It
+1. Rename or Share the Printer
+Go to Control Panel → Devices and Printers (or Settings → Bluetooth & Devices → Printers & Scanners).
+Right-click the ZDesigner ZD411 printer, choose Printer properties → Sharing.
+Check “Share this printer” and give it a share name (e.g. ZD411ZPL).
+Then run:
+batch
+Copy code
+print /D:"\\%COMPUTERNAME%\ZD411ZPL" "C:\Path\To\labels.zpl"
+This often solves the issue, because now print sees a share name instead of a raw USB device.
