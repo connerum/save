@@ -1,0 +1,71 @@
+package com.connerum.modernpricestable.Model;
+
+import java.io.IOException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+public class Zebra {
+    private final PrinterDriver printerDriver = new PrinterDriver();
+    private String printerName;
+
+    public Zebra() {
+        try {
+            printerName = printerDriver.findPrinterName();
+        } catch (IOException e) {
+            Logger logger = LoggerFactory.getLogger(Zebra.class);
+            logger.error("An error occurred while finding the printer name: ", e);
+        }
+    }
+
+    public void printLabel(Labels labels) {
+        LabelFormatter labelFormatter = new LabelFormatter();
+
+        try {
+            String zplData = labelFormatter.formatLabel(labels);
+
+            // Write ZPL data to a temporary file
+            Path tempFile = Files.createTempFile("labels", ".zpl");
+            Files.write(tempFile, zplData.getBytes());
+
+            // Construct the command to print the labels the required number of times
+            String printCommand = String.format("cmd /c print /d:\"%s\" \"%s\"", printerName, tempFile.toAbsolutePath().toString());
+            System.out.println(printCommand);
+
+            // Execute the command
+            Process process = Runtime.getRuntime().exec(printCommand);
+            process.waitFor();
+
+            // Delete the temporary file
+            Files.delete(tempFile);
+
+        } catch (Exception e) {
+            Logger logger = LoggerFactory.getLogger(Zebra.class);
+            logger.error("An error occurred: ", e);
+        }
+    }
+
+    public void calibrate() {
+        try {
+            String calibrateCommand = "~JC\n";
+
+            // Write ZPL data to a temporary file
+            Path tempFile = Files.createTempFile("label", ".zpl");
+            Files.write(tempFile, calibrateCommand.getBytes());
+
+            // Construct the command to send the calibration command to the printer
+            String printCommand = String.format("cmd /c print /d:\"%s\" \"%s\"", printerName, tempFile.toAbsolutePath().toString());
+
+            // Execute the command
+            Process process = Runtime.getRuntime().exec(printCommand);
+            process.waitFor();
+
+            // Delete the temporary file
+            Files.delete(tempFile);
+        } catch (Exception e) {
+            Logger logger = LoggerFactory.getLogger(Zebra.class);
+            logger.error("An error occurred: ", e);
+        }
+    }
+}
